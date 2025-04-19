@@ -1,0 +1,55 @@
+= Bytecode manipulator
+
+This repository is intended to experiment the new class file api feature with java 23 that allows developers to manipulate bytecode without using any third party library.
+```java
+ClassFile cf = ClassFile.of();
+ClassModel classModel = cf.parse(Files.readAllBytes(locationPath));
+
+byte[] newBytes = cf.build(classModel.thisClass().asSymbol(),
+  classBuilder -> {
+    /// do your awesome things
+  });
+
+Files.write(locationPath, newBytes);
+```
+https://openjdk.org/jeps/484[see the jep here].
+
+It relies on `maven-ant-run` plugin to generate the _toString_ method for the _Model_ class in json format after compiling the class.
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-antrun-plugin</artifactId>
+    <version>3.1.0</version>
+    <executions>
+        <execution>
+            <id>bytecode-transform</id>
+            <phase>process-classes</phase>
+            <configuration>
+                <target>
+                    <java classname="edoardo.patti.writer.ClassWriter"
+                          fork="false" failOnError="true">
+                        <classpath>
+                            <pathelement path="${project.build.outputDirectory}"/>
+                        </classpath>
+                    </java>
+                </target>
+            </configuration>
+            <goals>
+                <goal>run</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+== Prerequisites
+
+- Java 23
+- Maven 3
+
+== Usage
+
+- mvn clean package
+java -jar
+
+- java -jar bytecode_manipulator-1.0-SNAPSHOT.jar
